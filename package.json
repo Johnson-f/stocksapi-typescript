@@ -1,0 +1,50 @@
+{
+  "name": "stocksapi",
+  "version": "1.0.0",
+  "description": "Unified Stock Market Data API Client - Fetch data from multiple stock market APIs (prices, earnings, estimates, financials, historical, and more ) in a single consistent schema.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "build": "tsc",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Johnson-f/stocksapi-typescript.git"
+  },
+  "keywords": [
+    "typescript",
+    "utility",
+    "stock",
+    "market",
+    "api",
+    "client"
+  ],
+  "author": "Johnson-f",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Johnson-f/stocksapi-typescript/issues"
+  },
+  "homepage": "https://github.com/Johnson-f/stocksapi-typescript#readme",
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.4",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^24.2.1",
+    "@types/node-fetch": "^2.6.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "types": "dist/index.d.ts"
+}
