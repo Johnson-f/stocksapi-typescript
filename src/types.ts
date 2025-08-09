@@ -75,6 +75,7 @@ export interface FinancialMetrics {
  */
 export interface StockQuote {
   symbol: string;
+  companyName?: string;  // Optional company name
   price: number;
   change: number;
   changePercent: number;

@@ -84,16 +84,47 @@ export class StocksAPI implements StockApiClient {
   }
 
   /**
-   * Get a stock quote with automatic fallback to other providers if needed
+   * Get a stock quote with automatic fallback to other providers if needed.
+   * If the quote doesn't include a company name, it will be fetched from the company profile.
+   * @param symbol - The stock symbol to get a quote for
+   * @param includeCompanyName - Whether to include the company name in the response (default: true)
+   * @returns A StockQuote object with the latest price and other market data
    * @throws {Error} If no provider can fulfill the request
+   * 
+   * @example
+   * ```typescript
+   * // Get a basic quote
+   * const quote = await api.getQuote('AAPL');
+   * console.log(`${quote.symbol} (${quote.companyName}): $${quote.price}`);
+   * ```
    */
-  async getQuote(symbol: string): Promise<StockQuote> {
+  async getQuote(symbol: string, includeCompanyName: boolean = true): Promise<StockQuote> {
+    // First, get the quote data
     const result = await this.registry.withFallback('realtime', (provider) => 
       provider.getQuote(symbol)
     );
     
     if (!result) {
       throw new Error(`Could not fetch quote for symbol: ${symbol}`);
+    }
+    
+    // If the quote already has a company name or we don't need to include it, return as is
+    if (!includeCompanyName || result.companyName) {
+      return result;
+    }
+    
+    try {
+      // Try to get the company profile to populate the company name
+      const profile = await this.getCompanyProfile(symbol);
+      if (profile && profile.name) {
+        return {
+          ...result,
+          companyName: profile.name
+        };
+      }
+    } catch (error) {
+      // If we can't get the company profile, just return the quote without the name
+      console.warn(`Could not fetch company name for ${symbol}:`, error instanceof Error ? error.message : 'Unknown error');
     }
     
     return result;

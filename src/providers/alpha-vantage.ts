@@ -238,8 +238,12 @@ export class AlphaVantageClient extends BaseStockApiClient {
   // Helper methods to map Alpha Vantage responses to our types
   
   private mapQuote(data: Record<string, string>, symbol: string): StockQuote {
+    // Extract the company name from the data if available (some providers might include it)
+    // For Alpha Vantage, we don't get the company name in the quote response,
+    // so we'll leave it undefined. The StocksAPI class can fetch it separately if needed.
     return {
       symbol,
+      companyName: undefined, // Will be populated by the StocksAPI class if needed
       price: parseFloat(data['05. price']),
       change: parseFloat(data['09. change']),
       changePercent: parseFloat(data['10. change percent'].replace('%', '')),
@@ -250,7 +254,7 @@ export class AlphaVantageClient extends BaseStockApiClient {
       low: parseFloat(data['04. low']),
       previousClose: parseFloat(data['08. previous close'])
     };
-  }
+  };
 
   private mapCompanyProfile(data: Record<string, any>): CompanyProfile {
     // Ensure required fields have defaults
