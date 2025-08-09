@@ -1,6 +1,6 @@
 {
   "name": "stocksapi",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Unified Stock Market Data API Client - Fetch data from multiple stock market APIs (prices, earnings, estimates, financials, historical, and more ) in a single consistent schema.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -46,6 +46,5 @@
   },
   "files": [
     "dist/**/*"
-  ],
-  "types": "dist/index.d.ts"
+  ]
 }
