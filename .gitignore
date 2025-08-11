@@ -44,5 +44,5 @@ Thumbs.db
 *.tsbuildinfo
 
 # Test
-__tests__/
-jest.config.js
+# __tests__/
+# jest.config.js

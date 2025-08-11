@@ -51,28 +51,114 @@ export interface CompanyProfile {
   marketCap?: number;
   employees?: number;
   ipoDate?: Date;
+  
+  // New fields
+  sharesOutstanding?: number;
+  floatShares?: number;
+  lastUpdated: Date;
+  
+  // Additional financial metrics that might be useful
+  beta?: number;
+  dividendPerShare?: number;
+  dividendYield?: number;
+  peRatio?: number;
+  eps?: number;
 }
 
 /**
  * Represents a company's financial metrics
  */
 export interface FinancialMetrics {
+  // Basic Info
   symbol: string;
+  asOfDate: Date;
+  
+  // Valuation Metrics
   marketCap?: number;
+  enterpriseValue?: number;
   peRatio?: number;
+  forwardPERatio?: number;
   pegRatio?: number;
   eps?: number;
+  priceToBookRatio?: number;
+  evToEbitda?: number;
+  evToRevenue?: number;
+  
+  // Profitability
   revenue?: number;
+  grossProfit?: number;
+  operatingIncome?: number;
+  netIncome?: number;
+  ebitda?: number;
+  
+  // Margins
+  grossMargin?: number;
+  operatingMargin?: number;
   profitMargin?: number;
+  ebitdaMargin?: number;
+  
+  // Balance Sheet
+  totalDebt?: number;
+  totalEquity?: number;
+  currentRatio?: number;
+  quickRatio?: number;
+  debtToEquity?: number;
+  
+  // Cash Flow
+  operatingCashFlow?: number;
+  freeCashFlow?: number;
+  freeCashFlowPerShare?: number;
+  
+  // Efficiency & Returns
+  returnOnEquity?: number;
+  returnOnAssets?: number;
+  returnOnCapitalEmployed?: number;
+  
+  // Growth Metrics
+  revenueGrowthYOY?: number;
+  revenueGrowthQOQ?: number;
+  epsGrowthYOY?: number;
+  epsGrowthQOQ?: number;
+  
+  // Dividends
   dividendYield?: number;
+  dividendPerShare?: number;
+  dividendPayoutRatio?: number;
   beta?: number;
   fiftyTwoWeekHigh?: number;
   fiftyTwoWeekLow?: number;
+  
+  
+  // Shares
+  sharesOutstanding?: number;
+  floatShares?: number;
+  
+  // Metadata
+  reportPeriod?: 'annual' | 'quarterly';
+  fiscalYearEnd?: string;
 }
 
 /**
  * Represents a stock quote
  */
+export interface VolumeMetrics {
+  avgDailyVolume: number;
+  avgDailyVolumeDollar: number;
+  currentVolume: number;
+  avgVolume30Day?: number;
+  avgVolume90Day?: number;
+  avgVolume1Year?: number;
+}
+
+export interface PerformanceMetrics {
+  oneWeek?: number;
+  oneMonth?: number;
+  threeMonth?: number;
+  oneYear?: number;
+  yearToDate?: number;
+  [key: string]: number | undefined;
+}
+
 export interface StockQuote {
   symbol: string;
   companyName?: string;  // Optional company name
@@ -85,6 +171,10 @@ export interface StockQuote {
   high?: number;
   low?: number;
   previousClose?: number;
+  
+  // New metrics
+  volumeMetrics?: VolumeMetrics;
+  performance?: PerformanceMetrics;
 }
 
 /**
@@ -103,15 +193,31 @@ export interface Dividend {
  * Represents an earnings report
  */
 export interface EarningsReport {
+  // Basic Information
   symbol: string;
   fiscalDateEnding: Date;
   reportedDate: Date;
+  
+  // EPS Data
   reportedEPS: number;
   estimatedEPS?: number;
   surprise?: number;
   surprisePercentage?: number;
+  
+  // Revenue Data
+  reportedRevenue?: number;
+  estimatedRevenue?: number;
+  revenueSurprise?: number;
+  revenueSurprisePercentage?: number;
+  
+  // Period Information
   period: 'Q1' | 'Q2' | 'Q3' | 'Q4' | 'FY';
   year: number;
+  
+  // Future Earnings Support
+  isFutureReport?: boolean;  // True if this is a future/upcoming earnings report
+  time?: string;            // e.g., "amc" (after market close), "bmo" (before market open)
+  currency?: string;        // Currency of the reported values
 }
 
 
@@ -134,7 +240,7 @@ export interface NewsArticle {
  */
 export type TimeInterval = 
   | '1min' | '5min' | '15min' | '30min' | '60min' 
-  | 'daily' | 'weekly' | 'monthly';
+  | '1d' | 'daily' | 'weekly' | 'monthly';
 
 /**
  * Base interface for API clients
@@ -156,20 +262,53 @@ export interface BatchCompanyProfileResult {
 
 export interface StockApiClient {
   // Stock data methods
-  getQuote(symbol: string): Promise<StockQuote>;
+  getQuote(symbol: string, includeHistorical?: boolean): Promise<StockQuote>;
   getQuotes(symbols: string[]): Promise<BatchQuoteResult>;
   getCompanyProfile(symbol: string): Promise<CompanyProfile>;
   getCompanyProfiles(symbols: string[]): Promise<BatchCompanyProfileResult>;
   getTimeSeries(
     symbol: string, 
-    interval: TimeInterval,
-    period?: number
+    interval?: TimeInterval,
+    period?: number,
+    startDate?: Date,
+    endDate?: Date,
+    outputSize?: 'compact' | 'full'
   ): Promise<TimeSeriesPoint[]>;
   
   // Financial data methods
-  getFinancialMetrics(symbol: string): Promise<FinancialMetrics>;
+  getFinancialMetrics(
+    symbol: string, 
+    asOfDate?: Date,
+    period?: 'annual' | 'quarterly' | 'ttm',
+    includeGrowthMetrics?: boolean
+  ): Promise<FinancialMetrics>;
   getDividends(symbol: string, startDate?: Date, endDate?: Date): Promise<Dividend[]>;
-  getEarnings(symbol: string, limit?: number): Promise<EarningsReport[]>;
+  getEarnings(
+    symbol: string, 
+    options?: {
+      limit?: number;
+      includeFutureReports?: boolean;
+      startDate?: Date;
+      endDate?: Date;
+    }
+  ): Promise<EarningsReport[]>;
+  
+  /**
+   * Get upcoming earnings reports for stocks
+   * @param options Options for fetching upcoming earnings
+   * @param options.limit Maximum number of reports to return
+   * @param options.startDate Start date for filtering (default: today)
+   * @param options.endDate End date for filtering (default: 3 months from now)
+   * @param options.symbols Array of symbols to filter by (if not provided, returns all stocks)
+   */
+  getUpcomingEarnings(
+    options?: {
+      limit?: number;
+      startDate?: Date;
+      endDate?: Date;
+      symbols?: string[];
+    }
+  ): Promise<EarningsReport[]>;
   
   // Market data methods
   searchSymbols(query: string): Promise<StockSymbol[]>;

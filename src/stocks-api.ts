@@ -16,6 +16,7 @@ import {
 import { validateConfig, StocksApiConfig } from './config';
 import { ProviderRegistry } from './providers';
 import { AlphaVantageClient } from './providers/alpha-vantage';
+import { PolygonIoClient } from './providers/polygon-io';
 
 /**
  * The main StocksAPI class that provides a unified interface to multiple stock market data providers.
@@ -64,6 +65,17 @@ export class StocksAPI implements StockApiClient {
         'alphaVantage',
         new AlphaVantageClient(
           providers.alphaVantage.apiKey,
+          this.config.requestTimeout
+        )
+      );
+    }
+    
+    // Register Polygon.io if configured
+    if (providers.polygon?.enabled) {
+      this.registry.registerProvider(
+        'polygon',
+        new PolygonIoClient(
+          providers.polygon.apiKey,
           this.config.requestTimeout
         )
       );
@@ -305,20 +317,65 @@ export class StocksAPI implements StockApiClient {
 
   /**
    * Get earnings reports with fallback support
+   * @param symbol Stock symbol to get earnings for
+   * @param optionsOrLimit Either a number limit or options object
+   * @param optionsOrLimit.limit Maximum number of reports to return (default: 4)
+   * @param optionsOrLimit.includeFutureReports Whether to include future/upcoming earnings reports (default: false)
+   * @param optionsOrLimit.startDate Optional start date to filter reports
+   * @param optionsOrLimit.endDate Optional end date to filter reports
    * @returns Array of earnings reports, or empty array if none found
    */
   async getEarnings(
     symbol: string, 
-    limit: number = 4
+    optionsOrLimit?: number | {
+      limit?: number;
+      includeFutureReports?: boolean;
+      startDate?: Date;
+      endDate?: Date;
+    }
   ): Promise<EarningsReport[]> {
     try {
+      // Handle both signatures: (symbol, limit) and (symbol, options)
+      const options = typeof optionsOrLimit === 'number' 
+        ? { limit: optionsOrLimit }
+        : optionsOrLimit || {};
+      
       const result = await this.registry.withFallback('fundamentals', (provider) => 
-        provider.getEarnings(symbol, limit)
+        provider.getEarnings(symbol, options)
       );
       
       return result || [];
     } catch (error) {
       console.warn(`Error fetching earnings for ${symbol}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Get upcoming earnings reports for multiple stocks
+   * @param options Options for fetching upcoming earnings
+   * @param options.limit Maximum number of reports to return (default: 50)
+   * @param options.startDate Start date for filtering (default: today)
+   * @param options.endDate End date for filtering (default: 3 months from now)
+   * @param options.symbols Array of symbols to filter by (if not provided, returns all stocks)
+   * @returns Array of upcoming earnings reports, or empty array if none found
+   */
+  async getUpcomingEarnings(
+    options: {
+      limit?: number;
+      startDate?: Date;
+      endDate?: Date;
+      symbols?: string[];
+    } = {}
+  ): Promise<EarningsReport[]> {
+    try {
+      const result = await this.registry.withFallback('fundamentals', (provider) => 
+        provider.getUpcomingEarnings(options)
+      );
+      
+      return result || [];
+    } catch (error) {
+      console.warn('Error fetching upcoming earnings:', error);
       return [];
     }
   }
@@ -378,5 +435,3 @@ export * from './config';
 
 // Export provider implementations
 export * from './providers';
-// Export all types for convenience
-export * from './index';

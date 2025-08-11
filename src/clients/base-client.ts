@@ -1,5 +1,5 @@
 import { 
-  StockApiClient, 
+  StockApiClient as IStockApiClient,
   StockSymbol, 
   TimeSeriesPoint, 
   CompanyProfile, 
@@ -13,6 +13,28 @@ import {
   BatchCompanyProfileResult,
   BatchResult
 } from '../types';
+
+// Extend the interface to include our new methods
+export interface StockApiClient extends IStockApiClient {
+  getEarnings(
+    symbol: string, 
+    options?: number | {
+      limit?: number;
+      includeFutureReports?: boolean;
+      startDate?: Date;
+      endDate?: Date;
+    }
+  ): Promise<EarningsReport[]>;
+  
+  getUpcomingEarnings(
+    options?: {
+      limit?: number;
+      startDate?: Date;
+      endDate?: Date;
+      symbols?: string[];
+    }
+  ): Promise<EarningsReport[]>;
+}
 
 /**
  * Base class for all stock API clients
@@ -41,6 +63,26 @@ export abstract class BaseStockApiClient implements StockApiClient {
 
   // Abstract methods that must be implemented by subclasses
   abstract getQuote(symbol: string): Promise<StockQuote>;
+  
+  // Earnings methods
+  abstract getEarnings(
+    symbol: string, 
+    options?: number | {
+      limit?: number;
+      includeFutureReports?: boolean;
+      startDate?: Date;
+      endDate?: Date;
+    }
+  ): Promise<EarningsReport[]>;
+  
+  abstract getUpcomingEarnings(
+    options?: {
+      limit?: number;
+      startDate?: Date;
+      endDate?: Date;
+      symbols?: string[];
+    }
+  ): Promise<EarningsReport[]>;
   
   async getQuotes(symbols: string[]): Promise<BatchQuoteResult> {
     const result: BatchQuoteResult = {};
@@ -127,7 +169,6 @@ export abstract class BaseStockApiClient implements StockApiClient {
   ): Promise<TimeSeriesPoint[]>;
   abstract getFinancialMetrics(symbol: string): Promise<FinancialMetrics>;
   abstract getDividends(symbol: string, startDate?: Date, endDate?: Date): Promise<Dividend[]>;
-  abstract getEarnings(symbol: string, limit?: number): Promise<EarningsReport[]>;
   abstract searchSymbols(query: string): Promise<StockSymbol[]>;
   abstract getMarketNews(symbols?: string[], limit?: number): Promise<NewsArticle[]>;
 

@@ -1,7 +1,7 @@
 export * from './registry';
 export * from './alpha-vantage';
+export * from './polygon-io';
 // Export other providers as they are implemented
-// export * from './polygon';
 // export * from './finnhub';
 // export * from './twelvedata';
 // export * from './iex-cloud';
