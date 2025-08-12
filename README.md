@@ -268,8 +268,283 @@ new StocksAPI(apiKey: string, provider?: ApiProvider)
 ## Supported Providers
 
 - [x] Alpha Vantage (default)
-- [ ] Finnhub (coming soon)
-- [ ] Yahoo Finance (coming soon)
+- [x] Finnhub
+- [x] Twelve Data
+- [x] Marketstack
+- [x] EODHD
+- [x] Tiingo
+
+### Twelve Data
+
+[Twelve Data](https://twelvedata.com) provides comprehensive financial data including stocks, forex, crypto, ETFs, and commodities. They offer APIs, WebSocket, and SDKs with ultra-low latency real-time data streaming.
+
+**Features:**
+- Real-time and historical stock prices
+- Company profiles and fundamentals
+- Dividend and earnings data
+- Market news
+- Symbol search
+- Support for 100,000+ symbols across 250+ exchanges
+
+**Setup:**
+1. Get your API key from [Twelve Data](https://twelvedata.com)
+2. Configure the provider in your StocksAPI instance:
+
+```typescript
+import { StocksAPI } from 'stocksapi-typescript';
+
+const api = new StocksAPI({
+  twelveData: {
+    apiKey: process.env.TWELVE_DATA_API_KEY || 'your-api-key-here',
+    enabled: true,
+    priority: 1,
+    rateLimit: 8, // Free tier: 8 requests per minute
+    features: {
+      realtime: true,
+      historical: true,
+      fundamentals: true,
+      news: true,
+      forex: true,
+      crypto: true,
+      technicals: true
+    }
+  }
+});
+```
+
+**Usage:**
+```typescript
+// Get stock quote
+const quote = await api.getQuote('AAPL');
+
+// Get company profile
+const profile = await api.getCompanyProfile('AAPL');
+
+// Get historical data
+const timeSeries = await api.getTimeSeries('AAPL', 'daily', 30);
+
+// Search symbols
+const results = await api.searchSymbols('apple');
+
+// Get market news
+const news = await api.getMarketNews(['AAPL'], 10);
+```
+
+### Marketstack
+
+[Marketstack](https://marketstack.com) provides real-time, intraday, and historical market data for over 30,000+ stock tickers worldwide. They offer a simple REST API with JSON responses and support for global exchanges.
+
+**Features:**
+- Real-time and historical stock prices
+- End-of-day (EOD) data for 500,000+ tickers
+- Support for 70+ stock exchanges worldwide
+- Simple REST API with JSON responses
+- Free tier with 100 monthly requests
+
+**Setup:**
+1. Get your API key from [Marketstack](https://marketstack.com)
+2. Configure the provider in your StocksAPI instance:
+
+```typescript
+import { StocksAPI } from 'stocksapi-typescript';
+
+const api = new StocksAPI({
+  marketStack: {
+    apiKey: process.env.MARKETSTACK_API_KEY || 'your-api-key-here',
+    enabled: true,
+    priority: 1,
+    rateLimit: 100, // Free tier: 100 requests per month
+    features: {
+      realtime: true,
+      historical: true,
+      fundamentals: false, // Limited fundamental data
+      news: false, // No news data
+      forex: true,
+      crypto: false,
+      technicals: false
+    }
+  }
+});
+```
+
+**Usage:**
+```typescript
+// Get stock quote
+const quote = await api.getQuote('AAPL');
+
+// Get company profile (basic information)
+const profile = await api.getCompanyProfile('AAPL');
+
+// Get historical data
+const timeSeries = await api.getTimeSeries('AAPL', 'daily', 30);
+
+// Search symbols
+const results = await api.searchSymbols('apple');
+
+// Get dividend history
+const dividends = await api.getDividends('AAPL');
+
+// Get financial metrics (basic calculations from price data)
+const metrics = await api.getFinancialMetrics('AAPL');
+```
+
+**Note:** Marketstack provides limited fundamental data compared to other providers. Earnings reports and news data are not available through this provider.
+
+### EODHD
+
+[EODHD](https://eodhd.com) provides comprehensive financial data APIs covering worldwide markets, stocks, ETFs, bonds, financial news, Forex, delisted companies, and more. They offer 30+ years of historical and live data with institutional-level quality.
+
+**Features:**
+- Real-time and historical stock prices
+- Comprehensive fundamental data and financial metrics
+- Dividend and earnings data
+- Market news and financial events
+- Symbol search across 150,000+ tickers
+- Support for 60+ stock exchanges
+- 20,000+ ETFs and 600+ indices
+- 1,100+ Forex pairs
+- US Stock Options data
+
+**Setup:**
+1. Get your API key from [EODHD](https://eodhd.com)
+2. Configure the provider in your StocksAPI instance:
+
+```typescript
+import { StocksAPI } from 'stocksapi-typescript';
+
+const api = new StocksAPI({
+  eodhd: {
+    apiKey: process.env.EODHD_API_KEY || 'your-api-key-here',
+    enabled: true,
+    priority: 1,
+    rateLimit: 1000, // Free tier: 1000 requests per day
+    features: {
+      realtime: true,
+      historical: true,
+      fundamentals: true,
+      news: true,
+      forex: true,
+      crypto: true,
+      technicals: true
+    }
+  }
+});
+```
+
+**Usage:**
+```typescript
+// Get stock quote
+const quote = await api.getQuote('AAPL');
+
+// Get comprehensive company profile
+const profile = await api.getCompanyProfile('AAPL');
+
+// Get detailed financial metrics
+const metrics = await api.getFinancialMetrics('AAPL');
+
+// Get historical data
+const timeSeries = await api.getTimeSeries('AAPL', 'daily', 30);
+
+// Search symbols
+const results = await api.searchSymbols('apple');
+
+// Get dividend history
+const dividends = await api.getDividends('AAPL');
+
+// Get earnings reports
+const earnings = await api.getEarnings('AAPL', { limit: 4 });
+
+// Get upcoming earnings
+const upcomingEarnings = await api.getUpcomingEarnings({ limit: 10 });
+
+// Get market news
+const news = await api.getMarketNews(['AAPL'], 10);
+```
+
+**Advantages:**
+- Comprehensive fundamental data
+- High-quality historical data (30+ years)
+- Extensive coverage of global markets
+- Real-time and delayed data options
+- Rich financial metrics and ratios
+- News and events data
+- Competitive pricing with free tier
+
+### Tiingo
+
+[Tiingo](https://www.tiingo.com/) provides institutional-quality financial data APIs with a focus on simplicity and reliability. They offer comprehensive coverage of stocks, ETFs, mutual funds, and other financial instruments with clean, normalized data.
+
+**Features:**
+- Real-time and historical stock prices
+- Comprehensive fundamental data and financial statements
+- Dividend and earnings data
+- Market news and financial events
+- Symbol search across global markets
+- Support for multiple exchanges and asset classes
+- Clean, normalized data with consistent schemas
+- RESTful API with JSON responses
+
+**Setup:**
+1. Get your API key from [Tiingo](https://api.tiingo.com/)
+2. Configure the provider in your StocksAPI instance:
+
+```typescript
+import { StocksAPI } from 'stocksapi-typescript';
+
+const api = new StocksAPI({
+  tiingo: {
+    apiKey: process.env.TIINGO_API_KEY || 'your-api-key-here',
+    enabled: true,
+    priority: 1,
+    rateLimit: 1000, // Free tier: 1000 requests per day
+    features: {
+      realtime: true,
+      historical: true,
+      fundamentals: true,
+      news: true,
+      forex: true,
+      crypto: false,
+      technicals: false
+    }
+  }
+});
+```
+
+**Usage:**
+```typescript
+// Get stock quote
+const quote = await api.getQuote('AAPL');
+
+// Get company profile
+const profile = await api.getCompanyProfile('AAPL');
+
+// Get detailed financial metrics
+const metrics = await api.getFinancialMetrics('AAPL');
+
+// Get historical data
+const timeSeries = await api.getTimeSeries('AAPL', 'daily', 30);
+
+// Search symbols
+const results = await api.searchSymbols('apple');
+
+// Get dividend history
+const dividends = await api.getDividends('AAPL');
+
+// Get earnings reports
+const earnings = await api.getEarnings('AAPL', { limit: 4 });
+
+// Get market news
+const news = await api.getMarketNews(['AAPL'], 10);
+```
+
+**Advantages:**
+- Clean, normalized data with consistent schemas
+- Comprehensive fundamental data coverage
+- Reliable API with good uptime
+- Simple REST API design
+- Good documentation and support
+- Competitive pricing with free tier
+- Focus on data quality and reliability
 
 ## License
 

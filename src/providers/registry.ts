@@ -12,48 +12,38 @@ import {
     BatchQuoteResult,
     BatchCompanyProfileResult
   } from '../types';
+  import { FinnhubClient } from './finnhub';
+import { TwelveDataClient } from './twelve-data';
+import { MarketstackClient } from './marketstack';
+import { EODHDClient } from './eodhd';
+import { FinancialModelingPrepClient } from './financial-modeling-prep';
+import { TiingoClient } from './tiingo';
   
-  // Updated Feature type to match what's used in stocks-api.ts
-  type Feature = 
-    | 'getQuote' 
-    | 'getQuotes' 
-    | 'getCompanyProfile' 
-    | 'getCompanyProfiles' 
-    | 'getTimeSeries' 
-    | 'getFinancialMetrics' 
-    | 'getDividends' 
-    | 'getEarnings' 
-    | 'searchSymbols' 
-    | 'getMarketNews'
-    | 'realtime'      // Added for stocks-api.ts compatibility
-    | 'fundamentals'  // Added for stocks-api.ts compatibility
-    | 'historical'    // Added for stocks-api.ts compatibility
-    | 'news';         // Added for stocks-api.ts compatibility
+  // Feature type defining all available API features
+export type Feature = 
+  | 'getQuote' 
+  | 'getQuotes' 
+  | 'getCompanyProfile' 
+  | 'getCompanyProfiles' 
+  | 'getTimeSeries' 
+  | 'getFinancialMetrics' 
+  | 'getDividends' 
+  | 'getEarnings' 
+  | 'searchSymbols' 
+  | 'getMarketNews'
+  | 'realtime'
+  | 'fundamentals'
+  | 'historical'
+  | 'news';
   
-  import { StocksApiConfig, ProviderName, getEnabledProviders } from '../config';
-  export { Feature };
+import { StocksApiConfig, ProviderName, getEnabledProviders, ApiProviderConfig } from '../config';
   /**
    * Provider registry manages multiple API providers and handles fallback logic
    */
   export class ProviderRegistry {
     private providers: Partial<Record<ProviderName, StockApiClient>> = {};
     private providerPriorities: Partial<Record<ProviderName, number>> = {};
-    private providerFeatures: Partial<Record<ProviderName, {
-      getQuote: boolean;
-      getQuotes: boolean;
-      getCompanyProfile: boolean;
-      getCompanyProfiles: boolean;
-      getTimeSeries: boolean;
-      getFinancialMetrics: boolean;
-      getDividends: boolean;
-      getEarnings: boolean;
-      searchSymbols: boolean;
-      getMarketNews: boolean;
-      realtime: boolean;
-      fundamentals: boolean;
-      historical: boolean;
-      news: boolean;
-    }>> = {};
+    private providerFeatures: Partial<Record<ProviderName, Record<Feature, boolean>>> = {};
     private config: StocksApiConfig;
   
     constructor(config: StocksApiConfig) {
@@ -63,27 +53,47 @@ import {
     /**
      * Register a new provider
      */
-    registerProvider(name: ProviderName, provider: StockApiClient): void {
+    registerProvider(name: ProviderName, provider: StockApiClient, priority: number = 10, config?: ApiProviderConfig): void {
       this.providers[name] = provider;
-      this.providerPriorities[name] = this.providerPriorities[name] || 0;
+      this.providerPriorities[name] = priority;
       
-      // Default all features to true for now - can be customized per provider
-      this.providerFeatures[name] = {
-        getQuote: true,
-        getQuotes: true,
-        getCompanyProfile: true,
-        getCompanyProfiles: true,
-        getTimeSeries: true,
-        getFinancialMetrics: true,
-        getDividends: true,
-        getEarnings: true,
-        searchSymbols: true,
-        getMarketNews: true,
-        realtime: true,
-        fundamentals: true,
-        historical: true,
-        news: true
-      };
+      // Initialize provider features based on config or default to all true
+      if (config) {
+        this.providerFeatures[name] = {
+          getQuote: config.features?.realtime || false,
+          getQuotes: config.features?.realtime || false,
+          getCompanyProfile: config.features?.fundamentals || false,
+          getCompanyProfiles: config.features?.fundamentals || false,
+          getTimeSeries: config.features?.historical || false,
+          getFinancialMetrics: config.features?.fundamentals || false,
+          getDividends: config.features?.fundamentals || false,
+          getEarnings: config.features?.fundamentals || false,
+          searchSymbols: true, // Most providers support this
+          getMarketNews: config.features?.news || false,
+          realtime: config.features?.realtime || false,
+          fundamentals: config.features?.fundamentals || false,
+          historical: config.features?.historical || false,
+          news: config.features?.news || false
+        } as Record<Feature, boolean>;
+      } else {
+        // Default to all features enabled
+        this.providerFeatures[name] = {
+          getQuote: true,
+          getQuotes: true,
+          getCompanyProfile: true,
+          getCompanyProfiles: true,
+          getTimeSeries: true,
+          getFinancialMetrics: true,
+          getDividends: true,
+          getEarnings: true,
+          searchSymbols: true,
+          getMarketNews: true,
+          realtime: true,
+          fundamentals: true,
+          historical: true,
+          news: true
+        } as Record<Feature, boolean>;
+      }
     }
   
     /**
@@ -119,29 +129,29 @@ import {
     /**
      * Execute a function with fallback to other providers if the primary fails
      */
-    // In your ProviderRegistry class
-async withFallback<T>(
-    feature: Feature,
-    callback: (provider: StockApiClient) => Promise<T>
-  ): Promise<T> {
-    const providers = this.getProvidersForFeature(feature);
+    async withFallback<T>(
+      feature: Feature,
+      callback: (provider: StockApiClient) => Promise<T | null | undefined>
+    ): Promise<T> {
+      const providers = this.getProvidersForFeature(feature);
   
-    for (const provider of providers) {
-      try {
-        const result = await callback(provider);
-        // Only return if result is truthy and not an empty object
-        if (result !== null && result !== undefined && 
-            (typeof result !== 'object' || Object.keys(result as object).length > 0)) {
-          return result;
+      for (const provider of providers) {
+        try {
+          const result = await callback(provider);
+          // Only return if result is truthy and not an empty object
+          if (result !== null && result !== undefined && 
+              (typeof result !== 'object' || Object.keys(result as object).length > 0)) {
+            return result;
+          }
+        } catch (error) {
+          console.warn(`Provider failed with error:`, error);
+          continue; // Try next provider
         }
-      } catch (error) {
-        continue; // Try next provider
       }
-    }
   
-    // If we get here, all providers failed
-    throw new Error('All providers failed');
-  }
+      // If we get here, all providers failed
+      throw new Error('All providers failed');
+    }
   
     /**
      * Update provider priorities based on configuration

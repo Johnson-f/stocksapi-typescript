@@ -1,13 +1,15 @@
 export * from './registry';
 export * from './alpha-vantage';
 export * from './polygon-io';
+export * from './finnhub';
+export * from './twelve-data';
+export * from './marketstack';
+export * from './eodhd';
+export * from './financial-modeling-prep';
+export * from './tiingo';
 // Export other providers as they are implemented
-// export * from './finnhub';
-// export * from './twelvedata';
 // export * from './iex-cloud';
-// export * from './marketstack';
 // export * from './eod-historical';
-// export * from './financial-modeling-prep';
 // export * from './stooq';
 // export * from './trading-economics';
 // export * from './investing-com';
@@ -17,5 +19,4 @@ export * from './polygon-io';
 // export * from './benzinga';
 // export * from './fred';
 // export * from './world-trading-data';
-// export * from './tiingo';
 // export * from './alpha-sense';

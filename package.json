@@ -2,15 +2,16 @@
   "name": "stocksapi",
   "version": "1.1.0",
   "description": "Unified Stock Market Data API Client - Fetch data from multiple stock market APIs (prices, earnings, estimates, financials, historical, and more ) in a single consistent schema.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "build": "tsc",
     "prepare": "npm run build",
-    "prepublishOnly": "npm test"
+    "prepublishOnly": "npm test",
+    "example:tiingo": "ts-node example-tiingo.ts"
   },
   "repository": {
     "type": "git",
@@ -32,6 +33,8 @@
   },
   "homepage": "https://github.com/Johnson-f/stocksapi-typescript#readme",
   "dependencies": {
+    "@types/axios": "^0.9.36",
+    "axios": "^1.11.0",
     "date-fns": "^4.1.0",
     "node-fetch": "^2.6.7"
   },

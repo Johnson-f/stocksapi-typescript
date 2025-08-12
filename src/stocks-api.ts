@@ -17,6 +17,11 @@ import { validateConfig, StocksApiConfig } from './config';
 import { ProviderRegistry } from './providers';
 import { AlphaVantageClient } from './providers/alpha-vantage';
 import { PolygonIoClient } from './providers/polygon-io';
+import { FinnhubClient } from './providers/finnhub';
+import { TwelveDataClient } from './providers/twelve-data';
+import { MarketstackClient } from './providers/marketstack';
+import { EODHDClient } from './providers/eodhd';
+import { FinancialModelingPrepClient } from './providers/financial-modeling-prep';
 
 /**
  * The main StocksAPI class that provides a unified interface to multiple stock market data providers.
@@ -81,8 +86,7 @@ export class StocksAPI implements StockApiClient {
       );
     }
     
-    // Register other providers here as they are implemented
-    /*
+    // Register Finnhub if configured
     if (providers.finnhub?.enabled) {
       this.registry.registerProvider(
         'finnhub',
@@ -92,7 +96,50 @@ export class StocksAPI implements StockApiClient {
         )
       );
     }
-    */
+    
+    // Register Twelve Data if configured
+    if (providers.twelveData?.enabled) {
+      this.registry.registerProvider(
+        'twelveData',
+        new TwelveDataClient(
+          providers.twelveData.apiKey,
+          this.config.requestTimeout
+        )
+      );
+    }
+    
+    // Register Marketstack if configured
+    if (providers.marketStack?.enabled) {
+      this.registry.registerProvider(
+        'marketStack',
+        new MarketstackClient(
+          providers.marketStack.apiKey,
+          this.config.requestTimeout
+        )
+      );
+    }
+    
+    // Register EODHD if configured
+    if (providers.eodhd?.enabled) {
+      this.registry.registerProvider(
+        'eodhd',
+        new EODHDClient(
+          providers.eodhd.apiKey,
+          this.config.requestTimeout
+        )
+      );
+    }
+    
+    // Register Financial Modeling Prep if configured
+    if (providers.financialModelingPrep?.enabled) {
+      this.registry.registerProvider(
+        'financialModelingPrep',
+        new FinancialModelingPrepClient(
+          providers.financialModelingPrep.apiKey,
+          this.config.requestTimeout
+        )
+      );
+    }
   }
 
   /**

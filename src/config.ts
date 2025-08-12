@@ -37,6 +37,7 @@ export type ProviderName =
   | 'iexCloud' 
   | 'marketStack' 
   | 'eodHistorical' 
+  | 'eodhd'
   | 'financialModelingPrep' 
   | 'stooq' 
   | 'tradingEconomics' 
@@ -63,9 +64,10 @@ export interface StocksApiConfig {
     polygon?: ApiProviderConfig;
     finnhub?: ApiProviderConfig;
     twelveData?: ApiProviderConfig;
-    iexCloud?: ApiProviderConfig;
     marketStack?: ApiProviderConfig;
+    iexCloud?: ApiProviderConfig;
     eodHistorical?: ApiProviderConfig;
+    eodhd?: ApiProviderConfig;
     financialModelingPrep?: ApiProviderConfig;
     stooq?: ApiProviderConfig;
     tradingEconomics?: ApiProviderConfig;
@@ -144,7 +146,97 @@ export const DEFAULT_CONFIG: StocksApiConfig = {
         technicals: true
       }
     },
+    twelveData: {
+      name: 'Twelve Data',
+      baseUrl: 'https://api.twelvedata.com',
+      apiKey: process.env.TWELVE_DATA_API_KEY || '',
+      enabled: true,
+      priority: 4,
+      rateLimit: 8, // Free tier: 8 requests per minute
+      isPremium: false,
+      features: {
+        realtime: true,
+        historical: true,
+        fundamentals: true,
+        news: true,
+        forex: true,
+        crypto: true,
+        technicals: true
+      }
+    },
+    marketStack: {
+      name: 'Marketstack',
+      baseUrl: 'http://api.marketstack.com/v1',
+      apiKey: process.env.MARKETSTACK_API_KEY || '',
+      enabled: true,
+      priority: 5,
+      rateLimit: 100, // Free tier: 100 requests per month
+      isPremium: false,
+      features: {
+        realtime: true,
+        historical: true,
+        fundamentals: false, // Limited fundamental data
+        news: false, // No news data
+        forex: true,
+        crypto: false,
+        technicals: false
+      }
+    },
+    eodhd: {
+      name: 'EODHD',
+      baseUrl: 'https://eodhd.com/api',
+      apiKey: process.env.EODHD_API_KEY || '',
+      enabled: true,
+      priority: 6,
+      rateLimit: 1000, // Free tier: 1000 requests per day
+      isPremium: false,
+      features: {
+        realtime: true,
+        historical: true,
+        fundamentals: true,
+        news: true,
+        forex: true,
+        crypto: true,
+        technicals: true
+      }
+    },
+    financialModelingPrep: {
+      name: 'Financial Modeling Prep',
+      baseUrl: 'https://financialmodelingprep.com/api/v3',
+      apiKey: process.env.FINANCIAL_MODELING_PREP_API_KEY || '',
+      enabled: true,
+      priority: 7,
+      rateLimit: 250, // Free tier: 250 requests per day
+      isPremium: false,
+      features: {
+        realtime: true,
+        historical: true,
+        fundamentals: true,
+        news: true,
+        forex: true,
+        crypto: true,
+        technicals: true
+      }
+    },
     // Additional providers will be added with their specific configurations
+    tiingo: {
+      name: 'Tiingo',
+      baseUrl: 'https://api.tiingo.com',
+      apiKey: process.env.TIINGO_API_KEY || '',
+      enabled: true,
+      priority: 8,
+      rateLimit: 1000, // Free tier: 1000 requests per day
+      isPremium: false,
+      features: {
+        realtime: true,
+        historical: true,
+        fundamentals: true,
+        news: true,
+        forex: true,
+        crypto: false,
+        technicals: false
+      }
+    },
   }
 };
 

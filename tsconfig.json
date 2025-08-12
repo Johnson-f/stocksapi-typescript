@@ -5,7 +5,7 @@
     "module": "CommonJS",
     "declaration": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -13,6 +13,6 @@
     "types": ["node", "jest"],
     "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["src/**/*", "__tests__/**/*.test.ts"],
+  "include": ["src/**/*", "__tests__/**/*"],
   "exclude": ["node_modules", "dist"]
 }

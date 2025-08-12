@@ -15,7 +15,7 @@ import {
 } from '../types';
 
 // Extend the interface to include our new methods
-export interface StockApiClient extends IStockApiClient {
+interface StockApiClient extends IStockApiClient {
   getEarnings(
     symbol: string, 
     options?: number | {
@@ -39,14 +39,7 @@ export interface StockApiClient extends IStockApiClient {
 /**
  * Base class for all stock API clients
  * Implements the StockApiClient interface with common functionality
- * This is like a template for connecting to any stock market API
- * It handles the boring stuff like:
- * Making HTTP requests to get data
- * Handling timeouts (when requests take too long)
- * Managing API keys
- * Converting dates and numbers to the right format
  */
-
 export abstract class BaseStockApiClient implements StockApiClient {
   protected readonly apiKey: string;
   protected readonly baseUrl: string;
@@ -61,10 +54,9 @@ export abstract class BaseStockApiClient implements StockApiClient {
     this.requestTimeout = requestTimeout;
   }
 
-  // Abstract methods that must be implemented by subclasses
-  abstract getQuote(symbol: string): Promise<StockQuote>;
+  // Updated method signatures to match implementations
+  abstract getQuote(symbol: string, includeHistorical?: boolean): Promise<StockQuote>;
   
-  // Earnings methods
   abstract getEarnings(
     symbol: string, 
     options?: number | {
@@ -162,12 +154,23 @@ export abstract class BaseStockApiClient implements StockApiClient {
     return result;
   }
   
+  // Updated method signatures to match implementations across providers
   abstract getTimeSeries(
-    symbol: string, 
-    interval: TimeInterval,
-    period?: number
+    symbol: string,
+    interval?: TimeInterval,
+    period?: number,
+    startDate?: Date,
+    endDate?: Date,
+    outputSize?: 'compact' | 'full'
   ): Promise<TimeSeriesPoint[]>;
-  abstract getFinancialMetrics(symbol: string): Promise<FinancialMetrics>;
+
+  abstract getFinancialMetrics(
+    symbol: string,
+    asOfDate?: Date,
+    period?: 'annual' | 'quarterly' | 'ttm',
+    includeGrowthMetrics?: boolean
+  ): Promise<FinancialMetrics>;
+
   abstract getDividends(symbol: string, startDate?: Date, endDate?: Date): Promise<Dividend[]>;
   abstract searchSymbols(query: string): Promise<StockSymbol[]>;
   abstract getMarketNews(symbols?: string[], limit?: number): Promise<NewsArticle[]>;

@@ -83,6 +83,7 @@ export interface FinancialMetrics {
   priceToBookRatio?: number;
   evToEbitda?: number;
   evToRevenue?: number;
+  roe?: number;
   
   // Profitability
   revenue?: number;
@@ -124,6 +125,7 @@ export interface FinancialMetrics {
   dividendYield?: number;
   dividendPerShare?: number;
   dividendPayoutRatio?: number;
+  currency?: number;
   beta?: number;
   fiftyTwoWeekHigh?: number;
   fiftyTwoWeekLow?: number;
@@ -187,6 +189,7 @@ export interface Dividend {
   paymentDate: Date;
   recordDate: Date;
   declarationDate?: Date;
+  currency?: string;
 }
 
 /**

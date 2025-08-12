@@ -15,5 +15,5 @@
 // Re-export all types and the main StocksAPI class from stocks-api.ts
 export * from './stocks-api';
 
-// Export the base client interface and types for advanced usage
-export * from './clients';
+// Export the base client for advanced usage (but not the interface to avoid conflicts)
+export { BaseStockApiClient } from './clients';
