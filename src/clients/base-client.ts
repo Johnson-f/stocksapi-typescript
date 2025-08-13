@@ -11,7 +11,12 @@ import {
   TimeInterval,
   BatchQuoteResult,
   BatchCompanyProfileResult,
-  BatchResult
+  BatchResult,
+  EconomicEvent,
+  EconomicEventOptions,
+  EconomicCalendarEntry,
+  EconomicIndicator,
+  EconomicRegion
 } from '../types';
 
 // Extend the interface to include our new methods
@@ -174,6 +179,26 @@ export abstract class BaseStockApiClient implements StockApiClient {
   abstract getDividends(symbol: string, startDate?: Date, endDate?: Date): Promise<Dividend[]>;
   abstract searchSymbols(query: string): Promise<StockSymbol[]>;
   abstract getMarketNews(symbols?: string[], limit?: number): Promise<NewsArticle[]>;
+  
+  // Economic data methods
+  abstract getEconomicEvents(options?: EconomicEventOptions): Promise<EconomicEvent[]>;
+  abstract getEconomicCalendar(
+    options?: {
+      startDate?: Date;
+      endDate?: Date;
+      countries?: EconomicRegion[];
+      importance?: ('low' | 'medium' | 'high')[];
+    }
+  ): Promise<EconomicCalendarEntry[]>;
+  abstract getEconomicIndicator(
+    indicator: EconomicIndicator,
+    country: EconomicRegion,
+    options?: {
+      startDate?: Date;
+      endDate?: Date;
+      limit?: number;
+    }
+  ): Promise<EconomicEvent[]>;
 
   /**
    * Helper method to make HTTP requests

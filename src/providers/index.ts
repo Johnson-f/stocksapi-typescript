@@ -7,6 +7,7 @@ export * from './marketstack';
 export * from './eodhd';
 export * from './financial-modeling-prep';
 export * from './tiingo';
+export * from './quodd';
 // Export other providers as they are implemented
 // export * from './iex-cloud';
 // export * from './eod-historical';

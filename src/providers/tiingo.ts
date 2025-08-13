@@ -583,4 +583,28 @@ export class TiingoClient extends BaseStockApiClient {
       yearToDate: yearStartPrice > 0 ? ((currentPrice - yearStartPrice) / yearStartPrice) * 100 : undefined
     };
   }
+
+  /**
+   * This provider doesn't support economic events - return empty array
+   */
+  async getEconomicEvents(): Promise<import('../types').EconomicEvent[]> {
+    console.warn('Economic events are not supported by this provider');
+    return [];
+  }
+
+  /**
+   * This provider doesn't support economic calendar - return empty array
+   */
+  async getEconomicCalendar(): Promise<import('../types').EconomicCalendarEntry[]> {
+    console.warn('Economic calendar is not supported by this provider');
+    return [];
+  }
+
+  /**
+   * This provider doesn't support economic indicators - return empty array
+   */
+  async getEconomicIndicator(): Promise<import('../types').EconomicEvent[]> {
+    console.warn('Economic indicators are not supported by this provider');
+    return [];
+  }
 }

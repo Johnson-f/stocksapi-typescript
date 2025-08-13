@@ -1090,4 +1090,28 @@ export class AlphaVantageClient extends BaseStockApiClient {
       matchScore: parseFloat(match['9. matchScore'])
     }));
   }
+
+  /**
+   * Alpha Vantage doesn't support economic events - return empty array
+   */
+  async getEconomicEvents(): Promise<import('../types').EconomicEvent[]> {
+    console.warn('Economic events are not supported by Alpha Vantage');
+    return [];
+  }
+
+  /**
+   * Alpha Vantage doesn't support economic calendar - return empty array
+   */
+  async getEconomicCalendar(): Promise<import('../types').EconomicCalendarEntry[]> {
+    console.warn('Economic calendar is not supported by Alpha Vantage');
+    return [];
+  }
+
+  /**
+   * Alpha Vantage doesn't support economic indicators - return empty array
+   */
+  async getEconomicIndicator(): Promise<import('../types').EconomicEvent[]> {
+    console.warn('Economic indicators are not supported by Alpha Vantage');
+    return [];
+  }
 }

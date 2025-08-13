@@ -26,6 +26,7 @@ export interface ApiProviderConfig {
     forex: boolean;
     crypto: boolean;
     technicals: boolean;
+    economic: boolean;
   };
 }
 
@@ -45,6 +46,7 @@ export type ProviderName =
   | 'econoDB' 
   | 'myMarketCalendar' 
   | 'quandl' 
+  | 'quodd'
   | 'benzinga' 
   | 'fred' 
   | 'worldTradingData' 
@@ -75,6 +77,7 @@ export interface StocksApiConfig {
     econoDb?: ApiProviderConfig;
     marketCalendar?: ApiProviderConfig;
     quandl?: ApiProviderConfig;
+    quodd?: ApiProviderConfig;
     benzinga?: ApiProviderConfig;
     fred?: ApiProviderConfig;
     worldTradingData?: ApiProviderConfig;
@@ -106,7 +109,8 @@ export const DEFAULT_CONFIG: StocksApiConfig = {
         news: false,
         forex: true,
         crypto: true,
-        technicals: true
+        technicals: true,
+        economic: false
       }
     },
     // Other providers will be added with their specific configurations
@@ -125,7 +129,8 @@ export const DEFAULT_CONFIG: StocksApiConfig = {
         news: true,
         forex: true,
         crypto: true,
-        technicals: true
+        technicals: true,
+        economic: false
       }
     },
     finnhub: {
@@ -143,7 +148,8 @@ export const DEFAULT_CONFIG: StocksApiConfig = {
         news: true,
         forex: true,
         crypto: true,
-        technicals: true
+        technicals: true,
+        economic: false
       }
     },
     twelveData: {
@@ -161,7 +167,8 @@ export const DEFAULT_CONFIG: StocksApiConfig = {
         news: true,
         forex: true,
         crypto: true,
-        technicals: true
+        technicals: true,
+        economic: false
       }
     },
     marketStack: {
@@ -179,7 +186,8 @@ export const DEFAULT_CONFIG: StocksApiConfig = {
         news: false, // No news data
         forex: true,
         crypto: false,
-        technicals: false
+        technicals: false,
+        economic: false
       }
     },
     eodhd: {
@@ -197,7 +205,8 @@ export const DEFAULT_CONFIG: StocksApiConfig = {
         news: true,
         forex: true,
         crypto: true,
-        technicals: true
+        technicals: true,
+        economic: false
       }
     },
     financialModelingPrep: {
@@ -215,7 +224,8 @@ export const DEFAULT_CONFIG: StocksApiConfig = {
         news: true,
         forex: true,
         crypto: true,
-        technicals: true
+        technicals: true,
+        economic: true // FMP supports economic calendar
       }
     },
     // Additional providers will be added with their specific configurations
@@ -234,7 +244,27 @@ export const DEFAULT_CONFIG: StocksApiConfig = {
         news: true,
         forex: true,
         crypto: false,
-        technicals: false
+        technicals: false,
+        economic: false
+      }
+    },
+    quodd: {
+      name: 'Quodd',
+      baseUrl: 'https://api.quodd.com/v1',
+      apiKey: process.env.QUODD_API_KEY || '',
+      enabled: true,
+      priority: 9,
+      rateLimit: 1000, // Depends on subscription tier
+      isPremium: false,
+      features: {
+        realtime: true,
+        historical: true,
+        fundamentals: true,
+        news: true,
+        forex: true,
+        crypto: true,
+        technicals: true,
+        economic: false
       }
     },
   }
@@ -293,6 +323,7 @@ export function getEnabledProviders(config: StocksApiConfig): Array<ApiProviderC
         forex: provider.features?.forex || false,
         crypto: provider.features?.crypto || false,
         technicals: provider.features?.technicals || false,
+        economic: provider.features?.economic || false,
       },
       name
     }))

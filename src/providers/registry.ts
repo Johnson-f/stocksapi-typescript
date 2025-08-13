@@ -19,7 +19,7 @@ import { EODHDClient } from './eodhd';
 import { FinancialModelingPrepClient } from './financial-modeling-prep';
 import { TiingoClient } from './tiingo';
   
-  // Feature type defining all available API features
+// Feature type defining all available API features
 export type Feature = 
   | 'getQuote' 
   | 'getQuotes' 
@@ -31,10 +31,14 @@ export type Feature =
   | 'getEarnings' 
   | 'searchSymbols' 
   | 'getMarketNews'
+  | 'getEconomicEvents'
+  | 'getEconomicCalendar'
+  | 'getEconomicIndicator'
   | 'realtime'
   | 'fundamentals'
   | 'historical'
-  | 'news';
+  | 'news'
+  | 'economic';
   
 import { StocksApiConfig, ProviderName, getEnabledProviders, ApiProviderConfig } from '../config';
   /**
@@ -70,10 +74,14 @@ import { StocksApiConfig, ProviderName, getEnabledProviders, ApiProviderConfig }
           getEarnings: config.features?.fundamentals || false,
           searchSymbols: true, // Most providers support this
           getMarketNews: config.features?.news || false,
+          getEconomicEvents: config.features?.economic || false,
+          getEconomicCalendar: config.features?.economic || false,
+          getEconomicIndicator: config.features?.economic || false,
           realtime: config.features?.realtime || false,
           fundamentals: config.features?.fundamentals || false,
           historical: config.features?.historical || false,
-          news: config.features?.news || false
+          news: config.features?.news || false,
+          economic: config.features?.economic || false
         } as Record<Feature, boolean>;
       } else {
         // Default to all features enabled
@@ -88,10 +96,14 @@ import { StocksApiConfig, ProviderName, getEnabledProviders, ApiProviderConfig }
           getEarnings: true,
           searchSymbols: true,
           getMarketNews: true,
+          getEconomicEvents: true,
+          getEconomicCalendar: true,
+          getEconomicIndicator: true,
           realtime: true,
           fundamentals: true,
           historical: true,
-          news: true
+          news: true,
+          economic: true
         } as Record<Feature, boolean>;
       }
     }

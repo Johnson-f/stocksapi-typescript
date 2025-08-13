@@ -10,7 +10,12 @@ import {
   NewsArticle,
   TimeInterval,
   BatchQuoteResult,
-  BatchCompanyProfileResult
+  BatchCompanyProfileResult,
+  EconomicEvent,
+  EconomicEventOptions,
+  EconomicCalendarEntry,
+  EconomicIndicator,
+  EconomicRegion
 } from './types';
 
 import { validateConfig, StocksApiConfig } from './config';
@@ -22,6 +27,7 @@ import { TwelveDataClient } from './providers/twelve-data';
 import { MarketstackClient } from './providers/marketstack';
 import { EODHDClient } from './providers/eodhd';
 import { FinancialModelingPrepClient } from './providers/financial-modeling-prep';
+import { QuoddClient } from './providers/quodd';
 
 /**
  * The main StocksAPI class that provides a unified interface to multiple stock market data providers.
@@ -136,6 +142,17 @@ export class StocksAPI implements StockApiClient {
         'financialModelingPrep',
         new FinancialModelingPrepClient(
           providers.financialModelingPrep.apiKey,
+          this.config.requestTimeout
+        )
+      );
+    }
+    
+    // Register Quodd if configured
+    if (providers.quodd?.enabled) {
+      this.registry.registerProvider(
+        'quodd',
+        new QuoddClient(
+          providers.quodd.apiKey,
           this.config.requestTimeout
         )
       );
@@ -462,6 +479,77 @@ export class StocksAPI implements StockApiClient {
       return result || [];
     } catch (error) {
       console.warn('No news providers available or all failed:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get economic events with fallback support
+   * @param options - Options for filtering economic events
+   * @returns Array of economic events, or empty array if none found
+   */
+  async getEconomicEvents(options?: EconomicEventOptions): Promise<EconomicEvent[]> {
+    try {
+      const result = await this.registry.withFallback('getEconomicEvents', (provider) => 
+        provider.getEconomicEvents(options)
+      );
+      
+      return result || [];
+    } catch (error) {
+      console.warn('Error fetching economic events:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get economic calendar with fallback support
+   * @param options - Options for filtering the calendar
+   * @returns Array of economic calendar entries, or empty array if none found
+   */
+  async getEconomicCalendar(
+    options?: {
+      startDate?: Date;
+      endDate?: Date;
+      countries?: EconomicRegion[];
+      importance?: ('low' | 'medium' | 'high')[];
+    }
+  ): Promise<EconomicCalendarEntry[]> {
+    try {
+      const result = await this.registry.withFallback('getEconomicCalendar', (provider) => 
+        provider.getEconomicCalendar(options)
+      );
+      
+      return result || [];
+    } catch (error) {
+      console.warn('Error fetching economic calendar:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get historical data for a specific economic indicator with fallback support
+   * @param indicator - The economic indicator to fetch
+   * @param country - The country/region
+   * @param options - Additional options
+   * @returns Array of economic events for the indicator, or empty array if none found
+   */
+  async getEconomicIndicator(
+    indicator: EconomicIndicator,
+    country: EconomicRegion,
+    options?: {
+      startDate?: Date;
+      endDate?: Date;
+      limit?: number;
+    }
+  ): Promise<EconomicEvent[]> {
+    try {
+      const result = await this.registry.withFallback('getEconomicIndicator', (provider) => 
+        provider.getEconomicIndicator(indicator, country, options)
+      );
+      
+      return result || [];
+    } catch (error) {
+      console.warn(`Error fetching economic indicator ${indicator} for ${country}:`, error);
       return [];
     }
   }

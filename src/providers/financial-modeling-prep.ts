@@ -12,7 +12,13 @@ import {
   NewsArticle,
   TimeInterval,
   BatchQuoteResult,
-  BatchCompanyProfileResult
+  BatchCompanyProfileResult,
+  EconomicEvent,
+  EconomicEventOptions,
+  EconomicCalendarEntry,
+  EconomicIndicator,
+  EconomicRegion,
+  EconomicEventImportance
 } from '../types';
 import { subDays, subMonths, subYears, startOfYear } from 'date-fns';
 
@@ -588,5 +594,215 @@ export class FinancialModelingPrepClient extends BaseStockApiClient {
     if (month >= 4 && month <= 6) return 'Q2';
     if (month >= 7 && month <= 9) return 'Q3';
     return 'Q4';
+  }
+
+  /**
+   * Get economic events
+   */
+  async getEconomicEvents(options: EconomicEventOptions = {}): Promise<EconomicEvent[]> {
+    const {
+      indicators = [],
+      countries = ['US'],
+      importance = ['high', 'medium', 'low'],
+      startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      includeFuture = true,
+      includeHistorical = true,
+      limit = 100
+    } = options;
+
+    const events: EconomicEvent[] = [];
+    
+    try {
+      // Financial Modeling Prep provides economic calendar data
+      const data = await this.makeRequest<any[]>(`${this.baseUrl}/economic_calendar`);
+      
+      if (data && Array.isArray(data)) {
+        for (const event of data) {
+          const economicEvent = this.mapEconomicEvent(event);
+          
+          // Apply filters
+          if (indicators.length > 0 && !indicators.includes(economicEvent.indicator)) continue;
+          if (countries.length > 0 && !countries.includes(economicEvent.country)) continue;
+          if (!importance.includes(economicEvent.importance)) continue;
+          if (economicEvent.releaseDate < startDate || economicEvent.releaseDate > endDate) continue;
+          if (!includeFuture && economicEvent.isFuture) continue;
+          if (!includeHistorical && !economicEvent.isFuture) continue;
+          
+          events.push(economicEvent);
+        }
+      }
+    } catch (error) {
+      console.warn('Could not fetch economic events:', error);
+    }
+    
+    return events
+      .sort((a, b) => a.releaseDate.getTime() - b.releaseDate.getTime())
+      .slice(0, limit);
+  }
+
+  /**
+   * Get economic calendar
+   */
+  async getEconomicCalendar(
+    options: {
+      startDate?: Date;
+      endDate?: Date;
+      countries?: EconomicRegion[];
+      importance?: ('low' | 'medium' | 'high')[];
+    } = {}
+  ): Promise<EconomicCalendarEntry[]> {
+    const events = await this.getEconomicEvents({
+      ...options,
+      includeFuture: true,
+      includeHistorical: true
+    });
+    
+    // Group events by date
+    const calendarMap = new Map<string, EconomicCalendarEntry>();
+    
+    for (const event of events) {
+      const dateKey = event.releaseDate.toISOString().split('T')[0];
+      
+      if (!calendarMap.has(dateKey)) {
+        calendarMap.set(dateKey, {
+          date: new Date(dateKey),
+          events: []
+        });
+      }
+      
+      const entry = calendarMap.get(dateKey)!;
+      entry.events.push({
+        indicator: event.indicator,
+        name: event.name,
+        country: event.country,
+        importance: event.importance,
+        forecast: event.forecast,
+        previous: event.previous,
+        actual: event.actual
+      });
+    }
+    
+    return Array.from(calendarMap.values())
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+  }
+
+  /**
+   * Get historical data for a specific economic indicator
+   */
+  async getEconomicIndicator(
+    indicator: EconomicIndicator,
+    country: EconomicRegion,
+    options: {
+      startDate?: Date;
+      endDate?: Date;
+      limit?: number;
+    } = {}
+  ): Promise<EconomicEvent[]> {
+    const {
+      startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), // 1 year ago
+      endDate = new Date(),
+      limit = 50
+    } = options;
+    
+    return this.getEconomicEvents({
+      indicators: [indicator],
+      countries: [country],
+      startDate,
+      endDate,
+      includeHistorical: true,
+      includeFuture: false,
+      limit
+    });
+  }
+
+  /**
+   * Map FMP economic event data to our EconomicEvent interface
+   */
+  private mapEconomicEvent(data: any): EconomicEvent {
+    const releaseDate = new Date(data.date);
+    const now = new Date();
+    
+    return {
+      id: data.id || `${data.event}_${data.date}_${data.country}`,
+      indicator: this.mapIndicatorName(data.event),
+      name: data.event,
+      country: this.mapCountryCode(data.country),
+      releaseDate,
+      period: data.period || this.formatPeriod(releaseDate),
+      actual: data.actual !== null ? parseFloat(data.actual) : undefined,
+      forecast: data.estimate !== null ? parseFloat(data.estimate) : undefined,
+      previous: data.previous !== null ? parseFloat(data.previous) : undefined,
+      unit: data.unit || '%',
+      importance: this.mapImportance(data.impact),
+      isFuture: releaseDate > now,
+      source: 'Financial Modeling Prep'
+    };
+  }
+
+  /**
+   * Map FMP indicator names to our EconomicIndicator enum
+   */
+  private mapIndicatorName(eventName: string): EconomicIndicator {
+    const name = eventName.toLowerCase();
+    
+    if (name.includes('gdp')) return 'gdp';
+    if (name.includes('unemployment')) return 'unemployment_rate';
+    if (name.includes('inflation') || name.includes('cpi')) return 'inflation_cpi';
+    if (name.includes('interest rate') || name.includes('fed funds')) return 'interest_rate';
+    if (name.includes('retail sales')) return 'retail_sales';
+    if (name.includes('nonfarm payrolls') || name.includes('payroll')) return 'nonfarm_payrolls';
+    if (name.includes('housing starts')) return 'housing_starts';
+    if (name.includes('building permits')) return 'building_permits';
+    if (name.includes('industrial production')) return 'industrial_production';
+    if (name.includes('consumer confidence')) return 'consumer_confidence';
+    if (name.includes('pmi') && name.includes('manufacturing')) return 'manufacturing_pmi';
+    if (name.includes('pmi') && name.includes('services')) return 'services_pmi';
+    if (name.includes('jobless claims')) return 'jobless_claims';
+    if (name.includes('durable goods')) return 'durable_goods';
+    if (name.includes('trade balance')) return 'trade_balance';
+    
+    // Default fallback
+    return 'gdp';
+  }
+
+  /**
+   * Map FMP country names to our EconomicRegion enum
+   */
+  private mapCountryCode(country: string): EconomicRegion {
+    const countryLower = country.toLowerCase();
+    
+    if (countryLower.includes('united states') || countryLower.includes('usa') || countryLower === 'us') return 'US';
+    if (countryLower.includes('european union') || countryLower.includes('eurozone') || countryLower === 'eu') return 'EU';
+    if (countryLower.includes('united kingdom') || countryLower.includes('britain') || countryLower === 'uk') return 'UK';
+    if (countryLower.includes('japan') || countryLower === 'jp') return 'JP';
+    if (countryLower.includes('china') || countryLower === 'cn') return 'CN';
+    if (countryLower.includes('canada') || countryLower === 'ca') return 'CA';
+    if (countryLower.includes('australia') || countryLower === 'au') return 'AU';
+    
+    // Default fallback
+    return 'US';
+  }
+
+  /**
+   * Map FMP importance levels to our EconomicEventImportance enum
+   */
+  private mapImportance(impact: string): EconomicEventImportance {
+    if (!impact) return 'medium';
+    
+    const impactLower = impact.toLowerCase();
+    if (impactLower.includes('high')) return 'high';
+    if (impactLower.includes('low')) return 'low';
+    
+    return 'medium';
+  }
+
+  /**
+   * Format period string from date
+   */
+  private formatPeriod(date: Date): string {
+    const month = date.toLocaleDateString('en-US', { month: 'long' });
+    const year = date.getFullYear();
+    return `${month} ${year}`;
   }
 }

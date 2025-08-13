@@ -644,4 +644,28 @@ export class EODHDClient extends BaseStockApiClient {
       yearToDate: priceYtd ? calculateChange(priceYtd) : undefined
     };
   }
-} 
+
+  /**
+   * EODHD doesn't support economic events - return empty array
+   */
+  async getEconomicEvents(): Promise<import('../types').EconomicEvent[]> {
+    console.warn('Economic events are not supported by EODHD');
+    return [];
+  }
+
+  /**
+   * EODHD doesn't support economic calendar - return empty array
+   */
+  async getEconomicCalendar(): Promise<import('../types').EconomicCalendarEntry[]> {
+    console.warn('Economic calendar is not supported by EODHD');
+    return [];
+  }
+
+  /**
+   * EODHD doesn't support economic indicators - return empty array
+   */
+  async getEconomicIndicator(): Promise<import('../types').EconomicEvent[]> {
+    console.warn('Economic indicators are not supported by EODHD');
+    return [];
+  }
+}

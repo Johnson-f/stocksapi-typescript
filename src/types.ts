@@ -239,6 +239,168 @@ export interface NewsArticle {
 }
 
 /**
+ * Types of economic indicators
+ */
+export type EconomicIndicator = 
+  | 'interest_rate'           // Federal funds rate, ECB rate, etc.
+  | 'inflation_cpi'           // Consumer Price Index
+  | 'inflation_pce'           // Personal Consumption Expenditures
+  | 'gdp'                     // Gross Domestic Product
+  | 'gdp_growth'              // GDP Growth Rate
+  | 'retail_sales'            // Retail Sales
+  | 'manufacturing_pmi'       // Manufacturing PMI
+  | 'services_pmi'            // Services PMI
+  | 'composite_pmi'           // Composite PMI
+  | 'trade_balance'           // Trade Balance / Current Account
+  | 'consumer_confidence'     // Consumer Confidence Index
+  | 'consumer_sentiment'      // University of Michigan Consumer Sentiment
+  | 'housing_starts'          // Housing Starts
+  | 'building_permits'        // Building Permits
+  | 'existing_home_sales'     // Existing Home Sales
+  | 'new_home_sales'          // New Home Sales
+  | 'industrial_production'   // Industrial Production
+  | 'capacity_utilization'    // Capacity Utilization Rate
+  | 'unemployment_rate'       // Unemployment Rate
+  | 'nonfarm_payrolls'        // Non-Farm Payrolls
+  | 'jobless_claims'          // Initial/Continuing Jobless Claims
+  | 'labor_participation'     // Labor Force Participation Rate
+  | 'durable_goods'           // Durable Goods Orders
+  | 'factory_orders'          // Factory Orders
+  | 'business_inventories'    // Business Inventories
+  | 'ism_manufacturing'       // ISM Manufacturing Index
+  | 'ism_services'            // ISM Services Index
+  | 'ppi'                     // Producer Price Index
+  | 'import_export_prices'    // Import/Export Price Indices
+  | 'fomc_minutes'            // FOMC Meeting Minutes
+  | 'beige_book'              // Federal Reserve Beige Book
+  | 'treasury_budget'         // Treasury Budget Statement
+  | 'money_supply'            // M1, M2 Money Supply
+  | 'crude_inventories'       // EIA Crude Oil Inventories
+  | 'mortgage_applications'   // MBA Mortgage Applications
+  | 'redbook'                 // Redbook Retail Sales Index;
+
+/**
+ * Importance level of economic events
+ */
+export type EconomicEventImportance = 'low' | 'medium' | 'high';
+
+/**
+ * Country/Region codes for economic data
+ */
+export type EconomicRegion = 
+  | 'US'   // United States
+  | 'EU'   // European Union
+  | 'UK'   // United Kingdom
+  | 'JP'   // Japan
+  | 'CN'   // China
+  | 'CA'   // Canada
+  | 'AU'   // Australia
+  | 'NZ'   // New Zealand
+  | 'CH'   // Switzerland
+  | 'SE'   // Sweden
+  | 'NO'   // Norway
+  | 'IN'   // India
+  | 'BR'   // Brazil
+  | 'MX'   // Mexico
+  | 'KR'   // South Korea
+  | 'SG'   // Singapore
+  | 'HK'   // Hong Kong
+  | 'ZA'   // South Africa
+  | 'Global'; // Global/Multi-region
+
+/**
+ * Represents an economic event (past or future)
+ */
+export interface EconomicEvent {
+  // Basic Information
+  id: string;
+  indicator: EconomicIndicator;
+  name: string;                    // Human-readable name
+  country: EconomicRegion;
+  currency?: string;                // Relevant currency if applicable
+  
+  // Event Timing
+  releaseDate: Date;                // When the data is/was released
+  period: string;                   // Period covered (e.g., "Q3 2024", "September 2024")
+  periodStart?: Date;               // Start of the period covered
+  periodEnd?: Date;                 // End of the period covered
+  
+  // Data Values
+  actual?: number;                  // Actual value (null for future events)
+  forecast?: number;                // Consensus forecast
+  previous?: number;                // Previous period's value
+  revised?: number;                 // Revised previous value if applicable
+  
+  // Additional Metrics
+  unit?: string;                    // Unit of measurement (%, billions, index, etc.)
+  actualDisplay?: string;           // Formatted display value
+  forecastDisplay?: string;         // Formatted forecast value
+  previousDisplay?: string;         // Formatted previous value
+  
+  // Impact and Analysis
+  importance: EconomicEventImportance;
+  impact?: 'positive' | 'negative' | 'neutral' | 'mixed';  // Market impact
+  surprise?: number;                // Actual vs Forecast difference
+  surprisePercentage?: number;      // Surprise as percentage
+  
+  // Metadata
+  source?: string;                  // Data source (BLS, Census, Fed, etc.)
+  notes?: string;                   // Additional notes or context
+  isFuture: boolean;                // True if this is a future event
+  isPreliminary?: boolean;          // True if data is preliminary
+  isRevised?: boolean;              // True if this updates previous data
+  
+  // Related Information
+  relatedEvents?: string[];         // IDs of related events
+  marketReaction?: {                // Optional market reaction data
+    sp500Change?: number;
+    dowChange?: number;
+    nasdaqChange?: number;
+    vixChange?: number;
+    dollarIndexChange?: number;
+    yieldChange10Y?: number;
+  };
+}
+
+/**
+ * Options for fetching economic events
+ */
+export interface EconomicEventOptions {
+  indicators?: EconomicIndicator[];  // Filter by specific indicators
+  countries?: EconomicRegion[];      // Filter by countries/regions
+  importance?: EconomicEventImportance[]; // Filter by importance
+  startDate?: Date;                  // Start date for the range
+  endDate?: Date;                    // End date for the range
+  includeFuture?: boolean;           // Include future events
+  includeHistorical?: boolean;       // Include historical events
+  limit?: number;                    // Maximum number of events
+}
+
+/**
+ * Economic calendar entry (simplified view)
+ */
+export interface EconomicCalendarEntry {
+  date: Date;
+  events: Array<{
+    time?: string;                  // Time of release (e.g., "08:30 ET")
+    indicator: EconomicIndicator;
+    name: string;
+    country: EconomicRegion;
+    importance: EconomicEventImportance;
+    forecast?: number;
+    previous?: number;
+    actual?: number;                // Will be null for future events
+  }>;
+}
+
+/**
+ * Batch result for economic events
+ */
+export interface BatchEconomicEventResult {
+  [indicator: string]: BatchResult<EconomicEvent[]>;
+}
+
+/**
  * Time interval for time series data
  */
 export type TimeInterval = 
@@ -316,5 +478,43 @@ export interface StockApiClient {
   // Market data methods
   searchSymbols(query: string): Promise<StockSymbol[]>;
   getMarketNews(symbols?: string[], limit?: number): Promise<NewsArticle[]>;
+  
+  // Economic data methods
+  /**
+   * Get economic events (historical and/or future)
+   * @param options Options for filtering economic events
+   */
+  getEconomicEvents(
+    options?: EconomicEventOptions
+  ): Promise<EconomicEvent[]>;
+  
+  /**
+   * Get upcoming economic events calendar
+   * @param options Options for filtering the calendar
+   */
+  getEconomicCalendar(
+    options?: {
+      startDate?: Date;
+      endDate?: Date;
+      countries?: EconomicRegion[];
+      importance?: EconomicEventImportance[];
+    }
+  ): Promise<EconomicCalendarEntry[]>;
+  
+  /**
+   * Get historical data for a specific economic indicator
+   * @param indicator The economic indicator to fetch
+   * @param country The country/region
+   * @param options Additional options
+   */
+  getEconomicIndicator(
+    indicator: EconomicIndicator,
+    country: EconomicRegion,
+    options?: {
+      startDate?: Date;
+      endDate?: Date;
+      limit?: number;
+    }
+  ): Promise<EconomicEvent[]>;
 }
 

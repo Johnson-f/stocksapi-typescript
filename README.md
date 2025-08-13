@@ -1,23 +1,67 @@
 # StocksAPI TypeScript
 
-[![npm version](https://img.shields.io/npm/v/stocksapi-typescript.svg?style=flat-square)](https://www.npmjs.com/package/stocksapi-typescript)
+[![npm version](https://img.shields.io/npm/v/stocksapi.svg?style=flat-square)](https://www.npmjs.com/package/stocksapi)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=flat-square)](https://opensource.org/licenses/ISC)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg?style=flat-square)](http://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/tests-137%20passing-brightgreen.svg?style=flat-square)]()
+[![Coverage](https://img.shields.io/badge/coverage-44%25-orange.svg?style=flat-square)]()
 
-Unified Stock Market Data API Client - Fetch data from multiple stock market APIs (prices, earnings, estimates, financials, historical, and more) in a single consistent schema with TypeScript support.
+**A unified, type-safe client for accessing comprehensive stock market and economic data from multiple providers with automatic fallback support.**
 
-## Features
+Fetch real-time quotes, historical data, company profiles, financial metrics, earnings reports, economic indicators, and market news from 8+ data providers through a single, consistent TypeScript interface.
 
-- **Unified API**: Single interface for multiple stock market data providers
-- **Type Safety**: Fully typed responses with TypeScript
-- **Multiple Providers**: Support for Alpha Vantage (more coming soon)
-- **Comprehensive Data**:
-  - Real-time and historical stock prices
-  - Company profiles and financials
-  - Dividend history
-  - Earnings reports
-  - Market news
-  - And more!
+## 🚀 Quick Start
+
+```typescript
+import { StocksAPI } from 'stocksapi';
+
+// Initialize with provider configuration
+const api = new StocksAPI({
+  financialModelingPrep: { 
+    apiKey: 'your-api-key',
+    enabled: true 
+  }
+});
+
+// Get real-time stock quote
+const quote = await api.getQuote('AAPL');
+console.log(`${quote.symbol}: $${quote.price} (${quote.changePercent}%)`);
+
+// Get economic events
+const events = await api.getEconomicEvents({
+  countries: ['US'],
+  importance: ['high']
+});
+
+console.log(`Found ${events.length} high-impact economic events`);
+```
+
+## 🎯 Features
+
+### Core Features
+- ✅ **Unified API** - Single interface for 8+ data providers
+- ✅ **Type Safety** - Full TypeScript support with comprehensive types
+- ✅ **Auto Fallback** - Automatic provider switching if one fails
+- ✅ **Rate Limiting** - Built-in rate limit handling
+- ✅ **Batch Operations** - Efficient bulk data retrieval
+- ✅ **Error Handling** - Comprehensive error handling with clear messages
+
+### Stock Market Data
+- ✅ **Real-time Quotes** - Live stock prices with volume and performance metrics
+- ✅ **Historical Data** - OHLCV data with multiple time intervals
+- ✅ **Company Profiles** - Detailed company information and fundamentals
+- ✅ **Financial Metrics** - P/E ratios, margins, growth metrics, and more
+- ✅ **Earnings Reports** - Historical and upcoming earnings with estimates
+- ✅ **Dividend History** - Dividend payments and yield information
+- ✅ **Symbol Search** - Find stocks by company name or symbol
+- ✅ **Market News** - Latest financial news by symbol or general market
+
+### Economic Data (NEW!)
+- ✅ **Economic Events** - 30+ economic indicators (GDP, CPI, unemployment, etc.)
+- ✅ **Economic Calendar** - Upcoming economic releases by date
+- ✅ **Historical Indicators** - Historical economic data trends
+- ✅ **Multi-Country Support** - Data for US, EU, UK, Japan, and 15+ more regions
+- ✅ **Impact Analysis** - Event importance and market impact assessment
 
 ## Installation
 
@@ -264,15 +308,130 @@ new StocksAPI(apiKey: string, provider?: ApiProvider)
 - `getEarnings(symbol: string, limit?: number): Promise<EarningsReport[]>` - Get earnings reports
 - `searchSymbols(query: string): Promise<StockSymbol[]>` - Search for stock symbols
 - `getMarketNews(symbols?: string[], limit?: number): Promise<NewsArticle[]>` - Get market news
+- `getEconomicEvents(options?: EconomicEventOptions): Promise<EconomicEvent[]>` - Get economic events
+- `getEconomicCalendar(options?: EconomicEventOptions): Promise<EconomicCalendar[]>` - Get economic calendar
+- `getEconomicIndicator(indicator: string, country: string, options?: EconomicIndicatorOptions): Promise<EconomicIndicator[]>` - Get economic indicators
 
-## Supported Providers
+## 🌍 Economic Data API Reference
 
-- [x] Alpha Vantage (default)
-- [x] Finnhub
-- [x] Twelve Data
-- [x] Marketstack
-- [x] EODHD
-- [x] Tiingo
+### Economic Events
+
+```typescript
+// Get high-impact US economic events
+const events = await api.getEconomicEvents({
+  countries: ['US'],
+  importance: ['high'],
+  startDate: new Date(),
+  endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Next 30 days
+  limit: 20
+});
+
+console.log(events[0]);
+/*
+{
+  id: 'event-123',
+  indicator: 'nonfarm_payrolls',
+  name: 'Non-Farm Payrolls',
+  country: 'US',
+  releaseDate: 2024-01-05T13:30:00.000Z,
+  period: 'December 2023',
+  actual: 216000,
+  forecast: 170000,
+  previous: 199000,
+  unit: 'jobs',
+  importance: 'high',
+  isFuture: false,
+  surprise: 46000,
+  surprisePercentage: 27.06,
+  source: 'Bureau of Labor Statistics'
+}
+*/
+
+// Available indicators
+const indicators = [
+  'interest_rate', 'inflation_cpi', 'gdp', 'unemployment_rate',
+  'nonfarm_payrolls', 'retail_sales', 'manufacturing_pmi',
+  'consumer_confidence', 'housing_starts', 'trade_balance'
+  // ... and 20+ more
+];
+
+// Available countries
+const countries = [
+  'US', 'EU', 'UK', 'JP', 'CN', 'CA', 'AU', 'NZ', 'CH',
+  'SE', 'NO', 'IN', 'BR', 'MX', 'KR', 'SG', 'HK', 'ZA'
+];
+```
+
+### Economic Calendar
+
+```typescript
+const calendar = await api.getEconomicCalendar({
+  countries: ['US', 'EU'],
+  importance: ['high', 'medium'],
+  startDate: new Date(),
+  endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Next 7 days
+});
+
+console.log(calendar[0]);
+/*
+{
+  date: 2024-01-16T00:00:00.000Z,
+  events: [
+    {
+      indicator: 'retail_sales',
+      name: 'Retail Sales MoM',
+      country: 'US',
+      importance: 'high',
+      forecast: 0.3,
+      previous: 0.1,
+      actual: null // Future event
+    }
+  ]
+}
+*/
+```
+
+### Economic Indicators
+
+```typescript
+// Get GDP data for the US
+const gdpData = await api.getEconomicIndicator('gdp', 'US', {
+  startDate: new Date('2020-01-01'),
+  endDate: new Date(),
+  limit: 12
+});
+
+console.log(gdpData[0]);
+/*
+{
+  id: 'gdp-us-q3-2023',
+  indicator: 'gdp',
+  name: 'Gross Domestic Product',
+  country: 'US',
+  releaseDate: 2023-10-26T12:30:00.000Z,
+  period: 'Q3 2023',
+  actual: 26854.6,
+  previous: 26840.1,
+  unit: 'billions USD',
+  importance: 'high',
+  isFuture: false
+}
+*/
+```
+
+## 🏢 Supported Providers
+
+| Provider | Stock Data | Economic Data | Rate Limits | Free Tier |
+|----------|------------|---------------|-------------|-----------||
+| **Financial Modeling Prep** | ✅ Full | ✅ Full | 250/day | Yes |
+| **Alpha Vantage** | ✅ Full | ❌ No | 25/day | Yes |
+| **Finnhub** | ✅ Full | ❌ No | 60/min | Yes |
+| **Twelve Data** | ✅ Full | ❌ No | 8/min | Yes |
+| **Polygon.io** | ✅ Full | ❌ No | 5/min | Yes |
+| **EODHD** | ✅ Full | ❌ No | 1000/day | Yes |
+| **Tiingo** | ✅ Full | ❌ No | 1000/day | Yes |
+| **Marketstack** | ⚠️ Limited | ❌ No | 100/month | Yes |
+| **Quodd** | ✅ Full | ❌ No | Custom | Premium |
 
 ### Twelve Data
 
@@ -546,6 +705,149 @@ const news = await api.getMarketNews(['AAPL'], 10);
 - Competitive pricing with free tier
 - Focus on data quality and reliability
 
-## License
+## 🎭 TypeScript Types
 
-ISC © [Your Name]
+All interfaces are fully typed for IntelliSense support:
+
+```typescript
+import { 
+  StockQuote, 
+  CompanyProfile, 
+  FinancialMetrics,
+  TimeSeriesPoint,
+  EarningsReport,
+  Dividend,
+  NewsArticle,
+  EconomicEvent,
+  EconomicIndicator,
+  EconomicRegion,
+  EconomicEventOptions 
+} from 'stocksapi';
+
+// Type-safe API calls
+const quote: StockQuote = await api.getQuote('AAPL');
+const events: EconomicEvent[] = await api.getEconomicEvents();
+```
+
+## 🚨 Error Handling
+
+```typescript
+try {
+  const quote = await api.getQuote('INVALID');
+} catch (error) {
+  console.error('Error:', error.message);
+  // Handle specific error types
+  if (error.message.includes('All providers failed')) {
+    // All configured providers failed
+  }
+}
+
+// Graceful degradation for optional data
+const earnings = await api.getEarnings('AAPL').catch(() => []);
+const news = await api.getMarketNews(['AAPL']).catch(() => []);
+```
+
+## ⚡ Performance & Best Practices
+
+### Batch Operations
+```typescript
+// Efficient: Single batch call
+const quotes = await api.getQuotes(['AAPL', 'MSFT', 'GOOGL']);
+
+// Inefficient: Multiple individual calls
+const appl = await api.getQuote('AAPL');
+const msft = await api.getQuote('MSFT');
+const googl = await api.getQuote('GOOGL');
+```
+
+### Rate Limiting
+```typescript
+// The library handles rate limiting automatically
+// Use appropriate limits for bulk operations
+const quotes = await api.getQuotes(symbols.slice(0, 100)); // Process in chunks
+```
+
+### Caching
+```typescript
+// Consider implementing caching for frequently accessed data
+const cache = new Map();
+const getCachedQuote = async (symbol: string) => {
+  if (cache.has(symbol)) return cache.get(symbol);
+  const quote = await api.getQuote(symbol);
+  cache.set(symbol, quote);
+  return quote;
+};
+```
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run specific test suites
+npm run test:providers
+npm run test:economic
+
+# Test with your API keys
+FINANCIAL_MODELING_PREP_API_KEY=your_key npm run test:economic
+```
+
+## 📝 Examples
+
+### Portfolio Tracker
+```typescript
+const symbols = ['AAPL', 'MSFT', 'GOOGL', 'TSLA'];
+const quotes = await api.getQuotes(symbols);
+const totalValue = Object.values(quotes)
+  .filter(q => q.success)
+  .reduce((sum, q) => sum + q.data!.price, 0);
+```
+
+### Economic Dashboard
+```typescript
+const todayEvents = await api.getEconomicCalendar({
+  startDate: new Date(),
+  endDate: new Date(),
+  importance: ['high']
+});
+
+const gdpTrend = await api.getEconomicIndicator('gdp', 'US', {
+  limit: 8 // Last 8 quarters
+});
+```
+
+### Earnings Calendar
+```typescript
+const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+const upcomingEarnings = await api.getUpcomingEarnings({
+  startDate: new Date(),
+  endDate: nextWeek,
+  symbols: ['AAPL', 'MSFT', 'GOOGL', 'META', 'AMZN']
+});
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
+
+## ⭐ Support
+
+If you find this library useful, please give it a star! It helps others discover the project.
+
+For issues and questions:
+- 🐛 [Report bugs](https://github.com/Johnson-f/stocksapi-typescript/issues)
+- 💡 [Request features](https://github.com/Johnson-f/stocksapi-typescript/issues)
+- 📖 [Documentation](./ECONOMIC_INDICATORS_README.md)
+
+---
+
+Made with ❤️ by [Johnson-f](https://github.com/Johnson-f)
