@@ -77,7 +77,7 @@ yarn add stocksapi
 2. Create a new instance of the `StocksAPI` class with your API key
 
 ```typescript
-import { StocksAPI } from 'stocksapi-typescript';
+import { StocksAPI } from 'stocksapi';
 
 // Initialize with your Alpha Vantage API key
 const stocksAPI = new StocksAPI('YOUR_ALPHA_VANTAGE_API_KEY');
@@ -779,7 +779,7 @@ const getCachedQuote = async (symbol: string) => {
 };
 ```
 
-## 🧪 Testing
+## 🧪 Testing for developers 
 
 ```bash
 # Run all tests
@@ -827,7 +827,7 @@ const upcomingEarnings = await api.getUpcomingEarnings({
 });
 ```
 
-## 🤝 Contributing
+## 🤝 Contributing 
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)

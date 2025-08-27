@@ -43,6 +43,3 @@ Thumbs.db
 # TypeScript cache
 *.tsbuildinfo
 
-# Test
-__tests__/
-jest.config.js
